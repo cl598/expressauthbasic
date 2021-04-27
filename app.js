@@ -124,3 +124,39 @@ app.post('/login', (req, res) => {
         });
     }
 });
+
+app.use((req, res, next) => {
+    // Get auth token from the cookies
+    const authToken = req.cookies['AuthToken'];
+
+    // Inject the user to the request
+    req.user = authTokens[authToken];
+
+    next();
+});
+
+app.get('/protected', (req, res) => {
+    if (req.user) {
+        res.render('protected');
+    } else {
+        res.render('login', {
+            message: 'Please login to continue',
+            messageClass: 'alert-danger'
+        });
+    }
+});
+
+const requireAuth = (req, res, next) => {
+    if (req.user) {
+        next();
+    } else {
+        res.render('login', {
+            message: 'Please login to continue',
+            messageClass: 'alert-danger'
+        });
+    }
+};
+
+app.get('/protected', requireAuth, (req, res) => {
+    res.render('protected');
+});
